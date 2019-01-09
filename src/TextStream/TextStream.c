@@ -59,6 +59,16 @@
  */
 
 
+/** @brief Allows a TextUtilStream object to be buffered
+ * 
+ * If the TextUtilStream is specified to be buffered, 
+ * then this function loads the buffer.
+ * 
+ * If the TextUtilStream is not specified to be buffered, 
+ * then this function unloads the content to the specified stream.
+ * loaddata()
+ *
+ */
 void loaddata(TextUtilStream *in, char *fmt, ...) {
   va_list remaining;
   va_start(remaining,fmt);
@@ -87,7 +97,7 @@ void printSpaces(TextUtilStream *that, int howmany) {
     for (i =0; i <=howmany; i++) loadsmalldata(that, " ");
 }
 /*
- * that routine completes the prior line, either adding
+ * routine completes the prior line, either adding
  * a newline or a comma with a newline.
  */
 void finishPriorLine(TextUtilStream *that, int newobject) {
@@ -156,7 +166,7 @@ void finishPriorLine(TextUtilStream *that, int newobject) {
 }
 
 /**
- * creates a new generic TextUtilStream
+ * creates a new generic TextUtilStream, a generic constructor.
  */
 TextUtilStream *_createTextUtilStream(FILE *output, OutputType otype, int buffered) {
     TextUtilStream *that = NULL;
@@ -173,6 +183,9 @@ TextUtilStream *_createTextUtilStream(FILE *output, OutputType otype, int buffer
     that->stream = (char *) NULL;
     return that;
 }
+/**
+ * creates a new buffered TextUtilStream
+ */
 TextUtilStream *newBufferedTextUtilStream(FILE *output, OutputType otype) {
     return _createTextUtilStream(output, otype, 1);
 }
@@ -191,6 +204,10 @@ int findNumberOfParents(TextUtilStream *what) {
     }
     return count;
 }
+/**
+ * initialize a list, this is a private function.
+ * use `createList`.
+ */
 void initList( TextUtilStream *list, char *name) {
     switch (list->otype) {
         case TCL:
@@ -218,6 +235,10 @@ void initList( TextUtilStream *list, char *name) {
 }
 
 
+/**
+ * initialize alist, this is a private function.
+ * use `createObject`.
+ */
 void initObject( TextUtilStream *obj, char *name) {
     switch (obj->otype) {
         case TCL:
@@ -313,6 +334,9 @@ TextUtilStream *createList(TextUtilStream *obj, char *name) {
   printSpaces(obj, obj->level+1);
   return (TextUtilStream*) createExpandedType(obj, name, ARRAY);
 }
+/**
+ * private function to determine if the item is filtered.
+ */
 int filteredOut(TextUtilStream *obj, char *name) {
     int keepgoing = 1;
     int stopgoing = 0;
@@ -326,11 +350,7 @@ int filteredOut(TextUtilStream *obj, char *name) {
        if (strstr(obj->include_these, "all") != NULL) included=1;
        if (strstr(obj->include_these, name) != NULL) included=1;
        /*
-        if (included) {
-            printf("\nincluding %s\n", name);
-        } else {
-            printf("\nnot including %s (%s)\n", name, obj->include_these);
-        }
+         The include list, if set, specifes what is to be shown.
         */
     }
     if (obj->exclude_these == NULL) excluded = 0;
@@ -341,11 +361,7 @@ int filteredOut(TextUtilStream *obj, char *name) {
        str_append(tmp_name, ":");
        if (strstr(obj->exclude_these, tmp_name) != NULL) included=0;
        /*
-        if (excluded) {
-            printf("\nexcluding %s\n", tmp_name);
-        } else {
-            printf("\nnot excluding %s (%s)\n", tmp_name, obj->exclude_these);
-        }
+         The exclude list, filters out items.
         */
         mfree(tmp_name);
     }
@@ -380,6 +396,9 @@ void addToList(TextUtilStream *list, char *name, char *value) {
     }
     list->count++;
 }
+/**
+ * pubic function for adding an item to an object.
+ */
 void addToObject(TextUtilStream *obj, char *name, char *value) {
     if (obj == NULL) {
         fprintf(stderr, "no this for object!\n");
